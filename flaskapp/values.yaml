@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: "alon001.azurecr.io/myapp"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "latest"
 
 imagePullSecrets:
@@ -14,6 +14,12 @@ imagePullSecrets:
 
 nameOverride: ""
 fullnameOverride: ""
+
+ports:
+  - name: http
+    containerPort: 80
+    protocol: TCP
+
 
 serviceAccount:
   create: true
@@ -31,21 +37,32 @@ podAnnotations: {}
 podLabels: {}
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
-  targetPort: 5000
-  loadBalancerIP: "your-static-ip-address"
+  targetPort: 80
 
 ingress:
   enabled: false
+#   className: nginx  # Ensure this matches your Ingress controller
+#   annotations:
+#     kubernetes.io/ingress.class: "nginx"
+#     # cert-manager.io/cluster-issuer: "letsencrypt-staging"  # Use letsencrypt-production for production
+#   hosts:
+#     - host: alon.ydevops.io  # Your DNS name
+#       paths:
+#         - path: /
+#           pathType: Prefix
+#           backend:
+#             service:
+#               name: alon015-flaskapp  # Your service name
+#               port:
+#                 number: 5000
+  # tls:  # Define the TLS configuration
+  #   - hosts:
+  #       - alon.ydevops.io
+  #     secretName: alon-ydevops-io-tls  # Secret where the certificate will be stored
 
 
 autoscaling:
   enabled: false
 
-
-volumes: []
-volumeMounts: []
-nodeSelector: {}
-tolerations: []
-affinity: {}
