@@ -1,6 +1,7 @@
 # Flask Application Deployment Guide
 
 This guide outlines how to deploy a simple Flask application using Docker, Kubernetes, Helm, and Cert Manager, with the application serving a greeting message.
+Application will be deployed in Azure.
 
 ## Components
 
