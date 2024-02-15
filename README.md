@@ -1,18 +1,49 @@
+# Flask Application Deployment Guide
+
+This guide outlines how to deploy a simple Flask application using Docker, Kubernetes, Helm, and Cert Manager, with the application serving a greeting message.
+
+## Components
+
+- **app.py**: Flask application script.
+- **Dockerfile**: Instructions for building the Docker image.
+- **flaskapp/values.yaml**: Helm chart values for the Flask application deployment.
+
+## Building and Storing the Docker Image
+
+1. **GitHub Actions** is used for automating the building and storage of the Docker image.
+
+## Kubernetes Deployment
+
+1. **Creating a Docker Registry Secret**:  
+   Create a secret in Kubernetes to allow your deployment to pull the Docker image:
+   ```shell
+   kubectl create secret docker-registry myacr-secret \
+   --docker-server=alon001.azurecr.io \
+   --docker-username=alon001 \
+   --docker-password=<PASSWORD> \
+   --docker-email=alon212@gmail.com
 
 
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.0/deploy/static/provider/cloud/deploy.yaml
+## Deploying with Helm:
+Deploy your application using Helm with the custom values specified in flaskapp/values.yaml. To set the ingress controller's externalTrafficPolicy to Local, include this setting in your Helm command:
+**helm create flaskapp**
+then:
+**helm install alon015 . -f flaskapp/values.yaml --set controller.service.externalTrafficPolicy=Local**
 
-kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml
+## Certificate Management
+- Applying Cert Manager
+Install Cert Manager in your cluster to handle SSL/TLS certificates. This step is crucial for enabling HTTPS for your application.
+**kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.9.1/cert-manager.yaml**
 
-kubectl apply -f letsencrypt-staging-issuer.yaml
+- Next, apply the issuer configuration. This will setup Cert Manager to issue certificates for your domain using Let's Encrypt.
 
 
-Web applications typically use port 80 for HTTP and port 443 for HTTPS. These are the default ports that web browsers use to access websites. If a web application uses a non-standard port like 5000, users would have to specify the port number in the URL (like http://example.com:5000), which is not a common practice and could lead to confusion or errors.
+**kubectl apply -f letsencrypt-staging-issuer.yaml**
 
-In Kubernetes, the Ingress resource is used to manage external access to services in a cluster, typically HTTP and HTTPS requests. By default, an Ingress controller listens on ports 80 and 443. While it's possible to configure an Ingress controller to listen on other ports, this is not a common practice and could lead to compatibility issues with some Ingress controllers.
+## Why Not Use Port 5000?
+Using port 80 for HTTP and port 443 for HTTPS is standard practice for web applications. These ports are automatically used by web browsers for web traffic, making your application easily accessible without needing to specify a port number in the URL. For Kubernetes deployments, the Ingress resource is used to manage external access to services within the cluster on these standard ports, simplifying the configuration and ensuring compatibility with the widest range of network environments.
 
-If we use a NodePort service to expose the application on port 5000, Kubernetes will automatically allocate a port from a default range (30000-32767) for external access. This port is not easy to predict or control, and it's not in the range of ports typically used for web traffic.
+## Final Notes
+Ensure the DNS name alon.ydevops.io correctly points to your application. The ingress className and clusterIssuer should match your specific cluster setup. Adjust the values.yaml as necessary to fit your environment.
 
-Using a LoadBalancer service could allow us to expose the application on a specific port, but this type of service is typically provided by cloud providers and may not be available in all environments.
-
-In summary, while it's technically possible to expose a web application on port 5000 in Kubernetes, it's not a common practice and could lead to user confusion and compatibility issues. It's generally recommended to use port 80 for HTTP traffic and use an Ingress resource to manage external access to the application.
+Remember to replace <PASSWORD> with the actual password for your Docker registry secret. It's important to keep this and any other sensitive information secure.
